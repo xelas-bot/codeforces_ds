@@ -1,5 +1,5 @@
 base:
 	mkdir -p target
-base_rb_tree:
+base_av_tree:
 	make base
-	g++ base_tree.cpp base_rb_tree.hpp -O3 -o target/rbtree
+	g++ base_tree.cpp base_av_tree.hpp -O3 -std=c++20 -o target/rbtree
