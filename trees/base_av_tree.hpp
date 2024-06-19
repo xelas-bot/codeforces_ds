@@ -4,7 +4,11 @@
 #include <concepts>
 #include <compare>
 
-template <std::totally_ordered K, class V> 
+using std::max;
+
+namespace trees {
+
+template <std::totally_ordered K, typename V> 
 class AVNode final
 {
 public:
@@ -14,19 +18,16 @@ public:
 
     K key;
     V val;
-    int height;
+    size_t height;
 
-    AVNode(K key, V val) : 
+    AVNode(K key, V val, AVNode* parent) : 
     key(key), 
-    val(val) {
+    val(val),
+    parent(parent) {
         this->left = nullptr;
         this->right = nullptr;
-        this->height = 0;
+        this->height = 1;
     }
-
-
-    
-
 };
 
 
@@ -46,15 +47,17 @@ public:
         this->root = nullptr;
     }
 
-    virtual N<K,V>* insert(K& key, V& val)
+    // can make this slightly faster by inserting a pointer to a node directly
+    // this prevents us from copying 2 address each time we recurse down the tree
+    virtual void insert(K key, V& val)
     {
         if (this->root == nullptr)
         {
-            this->root = new N(key,val);
-            return this->root;
+            this->root = new N<K,V>(key,val,nullptr);
+            return;
         }
-        
-        return;
+
+        _insert(this->root, key, val);
     }
 
     const virtual N<K,V>* find(K& key, N<K,V>* root) 
@@ -64,12 +67,12 @@ public:
             return root;
         }
 
-        if (root->key > key && root->right != nullptr)
+        if (root->key < key && root->right != nullptr)
         {
             return find(key, root->right);
         }
 
-        if (root->key < key && root->left != nullptr)
+        if (root->key > key && root->left != nullptr)
         {
             return find(key, root->left);
         }
@@ -104,7 +107,51 @@ private:
 
     }
 
+
+    void _insert(N<K,V>* root, K& key, V& val)
+    {
+        N<K,V>* left = root->left;
+        N<K,V>* right = root->right;
+        // size_t left_height = left->height;
+        // size_t right_height = right->height;
+
+        if (key < root->key)
+        {
+            if (left == nullptr)
+            {
+                root->left = new N<K,V>(key,val,nullptr);
+                root->left->parent = root;
+            } else{
+                _insert(left,key,val);
+            }
+            size_t l_h = root->left->height;
+            size_t r_h = root->right != nullptr ? root->right->height : 0;
+            root->height = max(r_h, l_h) + 1;
+
+        } else if (key > root->key)
+        {
+            if (right == nullptr)
+            {
+                root->right = new N<K,V>(key,val,nullptr);
+                root->right->parent = root;
+                
+            } else {
+                _insert(right,key,val);
+            }
+
+            size_t r_h = root->right->height;
+            size_t l_h = root->left != nullptr ? root->left->height : 0;
+
+            root->height = max(r_h, l_h) + 1;
+
+        }else {
+            root->val = val;
+        }
+    }
+
 };
+
+}
 
 
 
