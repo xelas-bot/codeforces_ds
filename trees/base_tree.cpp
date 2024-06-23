@@ -1,5 +1,6 @@
 #include <iostream>
 #include "base_av_tree.hpp"
+#include "utils.hpp"
 
 int main() {
     // Print a welcome message
@@ -9,14 +10,30 @@ int main() {
     int one = 1;
     int two = 2;
 
-    tree.insert(one,one);
-    tree.insert(zero,zero);
-    tree.insert(two,two);
+    tree.insert(10,one);
+    tree.insert(15,one);
+    tree.insert(17,one);
+    tree.insert(12,one);
 
 
-    std::cout << tree.find(one, tree.root)->height << std::endl;
-    std::cout << tree.root->val << std::endl;
+    tree.insert(5,one);
+    
+    tree.insert(1,one);
 
-    // Return 0 to indicate successful execution
+    tree.insert(7,one);
+
+
+    tree.insert(18,one);
+    tree.insert(20,one);
+    tree.insert(8,one);
+    tree.insert(-1,one);
+    tree.insert(3,one);
+
+    std::cout << utils::wideness(tree.root).first << " " << utils::wideness(tree.root).second << std::endl;
+
+    utils::printTree(tree.root);
+
+    utils::inOrderTraversal(tree.root);
+
     return 0;
 }

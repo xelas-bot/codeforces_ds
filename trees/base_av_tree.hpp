@@ -1,10 +1,13 @@
 #pragma once
+#define FMT_HEADER_ONLY 
 #include <iostream>
 #include <type_traits>
 #include <concepts>
 #include <compare>
+#include "../fmt/format.h"
 
 using std::max;
+using fmt::format;
 
 namespace trees {
 
@@ -28,6 +31,12 @@ public:
         this->right = nullptr;
         this->height = 1;
     }
+
+    std::string toString()
+    {
+        return format("[{},{}]", key, height); 
+    }
+
 };
 
 
@@ -108,12 +117,10 @@ private:
     }
 
 
-    void _insert(N<K,V>* root, K& key, V& val)
+    void _insert(N<K,V>* root, K key, V& val)
     {
         N<K,V>* left = root->left;
         N<K,V>* right = root->right;
-        // size_t left_height = left->height;
-        // size_t right_height = right->height;
 
         if (key < root->key)
         {
@@ -122,8 +129,10 @@ private:
                 root->left = new N<K,V>(key,val,nullptr);
                 root->left->parent = root;
             } else{
-                _insert(left,key,val);
+                _insert(root->left,key,val);
             }
+
+
             size_t l_h = root->left->height;
             size_t r_h = root->right != nullptr ? root->right->height : 0;
             root->height = max(r_h, l_h) + 1;
@@ -134,14 +143,14 @@ private:
             {
                 root->right = new N<K,V>(key,val,nullptr);
                 root->right->parent = root;
+                std::cout << format("Me:{},{},{} ", (void*)root->right, root->right->toString(), (void*)root->right->parent) << std::endl;
                 
             } else {
-                _insert(right,key,val);
+                _insert(root->right,key,val);
             }
 
             size_t r_h = root->right->height;
             size_t l_h = root->left != nullptr ? root->left->height : 0;
-
             root->height = max(r_h, l_h) + 1;
 
         }else {

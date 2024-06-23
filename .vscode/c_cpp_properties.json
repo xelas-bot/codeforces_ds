@@ -6,7 +6,7 @@
                 "${workspaceFolder}/**"
             ],
             "defines": [],
-            "cStandard": "c17",
+            "cStandard": "c23",
             "intelliSenseMode": "linux-clang-x64"
         }
     ],
