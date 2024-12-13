@@ -4,7 +4,7 @@ INC_DIR = ../include/catch2 ../include/fmt
 CXXFLAGS=-std=c++20 -Wall -Wextra -pedantic -g
 CXXFLAGS+=  $(addprefix -I, $(INC_DIR))
 
-LDFLAGS = -L../lib/
+LDFLAGS = ../lib/libCatch2Main.a ../lib/libCatch2.a
 
 TARGETS = base_tree.cpp
 MY_INCS = base_av_tree.hpp utils.hpp
@@ -17,4 +17,4 @@ trees:
 	$(CXX) $(CXXFLAGS) $(TARGETS) $(MY_INCS) -o target/rbtree
 
 test:
-	g++ -I../include tests/test.cpp libCatch2Main.a libCatch2.a -o target/test
+	g++ -I../include tests/test.cpp $(LDFLAGS) -o target/test
