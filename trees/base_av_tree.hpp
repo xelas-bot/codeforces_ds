@@ -92,7 +92,7 @@ public:
 
     bool rebalance(N<K,V>* node)
     {
-        return node.isred;
+        return false;
     }
 
 private:
@@ -113,6 +113,17 @@ private:
 
     void lr_r(N<K,V>* node)
     {
+
+    }
+
+    void _delete(N<K,V>* node)
+    {
+        auto* toDelete = find(node->key, this->root);
+        if (toDelete->left == nullptr && toDelete->right == nullptr)
+        {
+            toDelete->parent->left = nullptr;
+            toDelete->parent->right = nullptr;
+        }
 
     }
 
