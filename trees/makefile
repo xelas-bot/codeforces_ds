@@ -22,3 +22,7 @@ trees:
 
 test:
 	g++ -I../include tests/test.cpp $(LDFLAGS) -o target/test
+
+trees_test:
+	make trees
+	make test
