@@ -6,6 +6,7 @@ CXXFLAGS+=  $(addprefix -I, $(INC_DIR))
 
 # TODO: could replace with -L to auto find the files in the lib directory
 # TODO: the clangd server relies on the compile_commands.json file, which is generated via a bear call (not cmake)
+# bear -- make trees test
 # perhapsibily write a script that encapsualtes the bear call and the make call
 LDFLAGS = ../lib/libCatch2Main.a ../lib/libCatch2.a
 
