@@ -1,9 +1,16 @@
 [
     {
         "arguments": [
-            "g++",
+            "g++-11",
             "-c",
-            "-I../include",
+            "-std=c++20",
+            "-Wall",
+            "-Wextra",
+            "-pedantic",
+            "-g",
+            "-I../include/catch2",
+            "-I../include/fmt",
+            "-I./",
             "../lib/libCatch2Main.a",
             "../lib/libCatch2.a",
             "-o",
@@ -24,8 +31,7 @@
             "-g",
             "-I../include/catch2",
             "-I../include/fmt",
-            "base_av_tree.hpp",
-            "utils.hpp",
+            "-I./",
             "-o",
             "target/rbtree",
             "base_tree.cpp"

@@ -4,7 +4,7 @@
 #include <type_traits>
 #include <concepts>
 #include <compare>
-#include "../fmt/format.h"
+#include <format.h>
 
 using std::max;
 using fmt::format;
@@ -12,18 +12,18 @@ using fmt::format;
 namespace trees {
 
 template <std::totally_ordered K, typename V> 
-class AVNode final
+class _AVNode
 {
 public:
-    AVNode* left;
-    AVNode* right;
-    AVNode* parent;
+    _AVNode* left;
+    _AVNode* right;
+    _AVNode* parent;
 
     K key;
     V val;
     size_t height;
 
-    AVNode(K key, V val, AVNode* parent) : 
+    _AVNode(K key, V val, _AVNode* parent) : 
     key(key), 
     val(val),
     parent(parent) {
@@ -36,6 +36,13 @@ public:
     {
         return format("[{},{}]", key, height); 
     }
+
+};
+
+
+template <std::totally_ordered K, typename V> 
+class AVNode final : public _AVNode<K,V>
+{
 
 };
 
@@ -69,7 +76,8 @@ public:
         _insert(this->root, key, val);
     }
 
-    const virtual N<K,V>* find(K& key, N<K,V>* root) 
+    // Returns 
+    virtual N<K,V>* find(K& key, N<K,V>* root) 
     {
         if (root->key == key)
         {
@@ -87,44 +95,234 @@ public:
         }
 
 
-        return root;
+        return nullptr;
     }
 
-    bool rebalance(N<K,V>* node)
+    void delete_node(K key)
     {
-        return false;
+        auto* node = find(key, this->root);
+        auto* toAdjust = _delete(node);
+
+        _variant_adjustments(toAdjust);
     }
 
 private:
-    void r_r(N<K,V>* node)
+
+    inline int get_height_diff(N<K,V>* node)
     {
-
-    }
-
-    void l_r(N<K,V>* node)
-    {
-
-    }
-
-    void rl_r(N<K,V>* node)
-    {
-
-    }
-
-    void lr_r(N<K,V>* node)
-    {
-
-    }
-
-    void _delete(N<K,V>* node)
-    {
-        auto* toDelete = find(node->key, this->root);
-        if (toDelete->left == nullptr && toDelete->right == nullptr)
+        if (node == nullptr)
         {
-            toDelete->parent->left = nullptr;
-            toDelete->parent->right = nullptr;
+            return 0;
         }
 
+        auto* left = node->left;
+        auto* right = node->right;
+
+        int l_h = left != nullptr ? left->height : 0;
+        int r_h = right != nullptr ? right->height : 0;
+
+        return r_h - l_h;
+    }
+
+    N<K,V>* find_rebalance_node(N<K,V>* node)
+    {
+        int diff = get_height_diff(node);
+
+        if (abs(diff) <= 1)
+        {
+            return nullptr;
+        }
+
+        int right_diff = get_height_diff(node->right);
+        int left_diff = get_height_diff(node->left);
+
+        if (abs(right_diff) > 1)
+        {
+            return find_rebalance_node(node->right);
+        }
+
+        if (abs(left_diff) > 1)
+        {
+            return find_rebalance_node(node->left);
+        }
+
+        return node;
+    }
+
+    void rebalance(N<K,V>* node)
+    {
+        auto* rebalance_node = find_rebalance_node(node);
+        if (rebalance_node == nullptr)
+        {
+            return;
+        }
+
+        int curr_diff = get_height_diff(rebalance_node);
+        int left_diff = get_height_diff(rebalance_node->left);
+        int right_diff = get_height_diff(rebalance_node->right);
+
+        if (curr_diff == 2 && right_diff == 1)
+        {
+            r_r(rebalance_node);
+        }
+
+        if (curr_diff < -1 && left_diff < 0)
+        {
+            l_l(rebalance_node);
+        }
+
+        if (curr_diff > 1 && left_diff < 0)
+        {
+            l_r(rebalance_node);
+        }
+
+        if (curr_diff < -1 && right_diff > 0)
+        {
+            r_l(rebalance_node);
+        }
+
+
+    }
+
+    void r_r(N<K,V>* node)
+    {
+        auto* right = node->right;
+        auto* parent = node->parent;
+
+        if (parent->right == node)
+        {
+            parent->right = right;
+        } else {
+            parent->left = right;
+        }
+
+        auto* right_left = right->left;
+        node->right = right_left;
+        right_left->parent = node;
+
+        node->parent = right;
+        right->left = node;
+    }
+
+    void l_l(N<K,V>* node)
+    {
+        auto* left = node->left;
+        auto* parent = node->parent;
+
+        if (parent->right == node)
+        {
+            parent->right = left;
+        } else {
+            parent->left = left;
+        }
+
+        auto* left_right = left->right;
+        node->left = left_right;
+        left_right->parent = node;
+
+        node->parent = left;
+        left->right = node;
+    }
+
+    N<K,V>* arg_max(N<K,V>* node)
+    {
+        if (node->right == nullptr)
+        {
+            return node;
+        }
+
+        return arg_max(node->right);
+    }
+
+    // Starts from node, and goes up the tree, updating heights
+    // TODO can probably move this to the node class itself
+    void _variant_adjustments(N<K,V>* node)
+    {
+        if (node == nullptr)
+        {
+            return;
+        }
+
+        auto l_h = node->left != nullptr ? node->left->height : 0;
+        auto r_h = node->right != nullptr ? node->right->height : 0;
+        node->height = max(l_h, r_h) + 1;
+
+        if (node->parent != nullptr)
+        {
+            _variant_adjustments(node->parent);
+        }
+    }
+
+    N<K,V>* _delete(N<K,V>* root)
+    {
+        auto* parent = root->parent;
+        auto* left = root->left;
+        auto* right = root->right;
+        N<K,V>* stub = nullptr;
+        N<K,V>* newRoot = root;
+
+        if (root->left == nullptr && root->right == nullptr)
+        {
+            if (parent) {
+                if (parent->left == root) {
+                    parent->left = nullptr;
+                } else {
+                    parent->right = nullptr;
+                }
+            }
+            stub = parent;
+            newRoot = stub;
+            delete root;
+        }
+
+        // Single child node
+        if (left == nullptr && right != nullptr)
+        {
+            stub = right;
+            stub->parent = parent;
+            if (parent) {
+                if (parent->left == root){
+                    parent->left = stub;
+                } else {
+                    parent->right = stub;
+                }
+            }
+            newRoot = stub;
+            delete root;
+        }
+
+        if (right == nullptr && left != nullptr)
+        {
+            stub = left;
+            stub->parent = parent;
+            if (parent) {
+                if (parent->left == root){
+                    parent->left = stub;
+                } else {
+                    parent->right = stub;
+                }
+            }
+            newRoot = stub;
+            delete root;
+        }
+
+
+        if (right != nullptr && left != nullptr)
+        {
+            stub = arg_max(left);
+            *root = *stub;
+            root->parent = parent;
+            root->left = left;
+            root->right = right;
+            stub = _delete(stub);
+        }
+
+        if (parent == nullptr)
+        {
+            this->root = newRoot;
+        }
+
+        return stub;
     }
 
 
@@ -154,8 +352,6 @@ private:
             {
                 root->right = new N<K,V>(key,val,nullptr);
                 root->right->parent = root;
-                std::cout << format("Me:{},{},{} ", (void*)root->right, root->right->toString(), (void*)root->right->parent) << std::endl;
-                
             } else {
                 _insert(root->right,key,val);
             }

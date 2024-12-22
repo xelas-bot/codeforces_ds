@@ -18,10 +18,11 @@ TARGETS_TEST = tests/test.cpp
 
 trees: 
 	mkdir -p target
-	$(CXX) $(CXXFLAGS) $(TARGETS) $(MY_INCS) -o target/rbtree
+	$(CXX) $(CXXFLAGS) -I./ $(TARGETS)  -o target/rbtree
 
+# ldflags have to be linked after the source files
 test:
-	g++ -I../include tests/test.cpp $(LDFLAGS) -o target/test
+	$(CXX) $(CXXFLAGS) -I./ tests/test.cpp $(LDFLAGS) -o target/test
 
 trees_test:
 	make trees
