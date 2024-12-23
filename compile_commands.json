@@ -11,6 +11,27 @@
             "-I../include/catch2",
             "-I../include/fmt",
             "-I./",
+            "../lib/libCatch2Main.a",
+            "../lib/libCatch2.a",
+            "-o",
+            "target/test",
+            "tests/test.cpp"
+        ],
+        "directory": "/home/shreysp3/codeforces_ds/trees",
+        "file": "tests/test.cpp"
+    },
+    {
+        "arguments": [
+            "g++-11",
+            "-c",
+            "-std=c++20",
+            "-Wall",
+            "-Wextra",
+            "-pedantic",
+            "-g",
+            "-I../include/catch2",
+            "-I../include/fmt",
+            "-I./",
             "-o",
             "target/rbtree",
             "base_tree.cpp"

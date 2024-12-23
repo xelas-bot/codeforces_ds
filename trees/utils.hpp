@@ -13,8 +13,8 @@ using std::string;
 namespace utils
 {
 
-template <std::totally_ordered K, typename V>
-pair<size_t,size_t> wideness(_AVNode<K,V>* root)
+template <std::totally_ordered K, typename V, template<typename, typename> class N>
+pair<size_t,size_t> wideness(BaseAVLNode<K,V,N<K,V>>* root)
 {
     if (root->right == nullptr && root->left == nullptr)
     {
@@ -56,7 +56,8 @@ T maxPair(std::pair<T,T> p)
     return std::max(p.first, p.second);
 }
 
-template <std::totally_ordered K, typename V> void inOrderTraversal(_AVNode<K,V>* root) 
+template <std::totally_ordered K, typename V, template<typename, typename> class N>
+void inOrderTraversal(BaseAVLNode<K,V,N<K,V>>* root) 
 {
     if (root == nullptr)
     {
@@ -69,8 +70,8 @@ template <std::totally_ordered K, typename V> void inOrderTraversal(_AVNode<K,V>
 }
 
 namespace {
-template <std::totally_ordered K, typename V>
-void _printTree(std::vector<std::vector<string>>& board, size_t x, size_t y, _AVNode<K,V>* root)
+template <std::totally_ordered K, typename V, template<typename, typename> class N>
+void _printTree(std::vector<std::vector<string>>& board, size_t x, size_t y, BaseAVLNode<K,V,N<K,V>>* root)
 {       
         if (root == nullptr)
         {
@@ -110,11 +111,10 @@ void _printTree(std::vector<std::vector<string>>& board, size_t x, size_t y, _AV
 }
 }
 
-template <std::totally_ordered K, typename V>  void printTree(_AVNode<K,V>* root) 
+template <std::totally_ordered K, typename V, template<typename, typename> class N>
+void printTree(BaseAVLNode<K,V,N<K,V>>* root) 
 {
     size_t wdn = maxPair(wideness(root));
-
-    std::cout << wdn << std::endl;
 
     std::vector<std::vector<string>> board(wdn*root->height, std::vector<string>(wdn*root->height * 1.5, " "));
 

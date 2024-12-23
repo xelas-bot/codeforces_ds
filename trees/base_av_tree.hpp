@@ -12,57 +12,64 @@ using fmt::format;
 
 namespace trees {
 
-template <std::totally_ordered K, typename V> 
-class _AVNode
-{
+template<typename T>
+class BaseNode{
 public:
-    _AVNode* left;
-    _AVNode* right;
-    _AVNode* parent;
+  T* parent;
+  T* left;
+  T* right;
+};
 
+template <std::totally_ordered K, typename V, typename NodeType>
+class BaseAVLNode : public BaseNode<NodeType>{
+
+public:
     K key;
     V val;
     size_t height;
 
-    _AVNode(K key, V val, _AVNode* parent) : 
+    BaseAVLNode(K key, V val, NodeType* parent) : 
     key(key), 
-    val(val),
-    parent(parent) {
+    val(val)
+    {
         this->left = nullptr;
         this->right = nullptr;
         this->height = 1;
+        this->parent = parent;
     }
 
     std::string toString()
     {
         return format("[{},{}]", key, height); 
     }
-
 };
 
 
 template <std::totally_ordered K, typename V> 
-class AVNode final : public _AVNode<K,V>
-{
+class AVNode final : public BaseAVLNode<K,V,AVNode<K,V>>{
 public:
-    AVNode(K key, V val, _AVNode<K,V>* parent) : _AVNode<K,V>(key, val, parent) {}
+  AVNode(K key, V val, AVNode<K,V>* parent) : BaseAVLNode<K,V,AVNode<K,V>>(key, val, parent){};
 };
 
 
+template<typename K, typename V, template<typename, typename> class N>
+concept AVLNodeType = std::is_base_of_v<BaseAVLNode<K,V,N<K,V>>, N<K,V>>
+                     && std::is_final_v<N<K,V>>;
 
-// bare minimum needed to implement an avtree
+                     
 template < std::totally_ordered K, typename V, template <typename, typename> class N>
+requires AVLNodeType<K,V,N>
 class AVTree
 {
 public:
-    static_assert(std::is_base_of<AVNode<K,V>, N<K,V>>::value, "");
-    static_assert(std::is_final_v<N<K,V>> == true);
 
     N<K,V>* root;
+    size_t size;
 
     AVTree()
     {
         this->root = nullptr;
+        this->size = 0;
     }
 
     // can make this slightly faster by inserting a pointer to a node directly
@@ -76,6 +83,7 @@ public:
         }
 
         _insert(this->root, key, val);
+        this->size++;
     }
 
     // Returns 
@@ -104,31 +112,15 @@ public:
     {
         auto* node = find(key, this->root);
         auto* toAdjust = _delete(node);
-
+        this->size--;
         _variant_adjustments(toAdjust);
-    }
-
-private:
-
-    inline int get_height_diff(N<K,V>* node)
-    {
-        if (node == nullptr)
-        {
-            return 0;
-        }
-
-        auto* left = node->left;
-        auto* right = node->right;
-
-        int l_h = left != nullptr ? left->height : 0;
-        int r_h = right != nullptr ? right->height : 0;
-
-        return r_h - l_h;
     }
 
     N<K,V>* find_rebalance_node(N<K,V>* node)
     {
         int diff = get_height_diff(node);
+
+        std::cout << format("[{},{}]", node->key, diff) << std::endl;
 
         if (abs(diff) <= 1)
         {
@@ -149,6 +141,24 @@ private:
         }
 
         return node;
+    }
+
+private:
+
+    inline int get_height_diff(N<K,V>* node)
+    {
+        if (node == nullptr)
+        {
+            return 0;
+        }
+
+        auto* left = node->left;
+        auto* right = node->right;
+
+        int l_h = left != nullptr ? left->height : 0;
+        int r_h = right != nullptr ? right->height : 0;
+
+        return r_h - l_h;
     }
 
     void rebalance(N<K,V>* node)

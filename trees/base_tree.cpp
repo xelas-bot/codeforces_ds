@@ -5,7 +5,7 @@
 int main() {
     // Print a welcome message
     std::cout << "Hello, world!" << std::endl;
-    trees::AVTree< int, int, trees::AVNode > tree;
+    trees::AVTree< int, int, trees::AVNode> tree;
     int one = 1;
 
     tree.insert(10,one);
