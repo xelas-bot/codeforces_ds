@@ -1,4 +1,5 @@
 #pragma once
+#include <cassert>
 #define FMT_HEADER_ONLY 
 #include <iostream>
 #include <type_traits>
@@ -43,7 +44,8 @@ public:
 template <std::totally_ordered K, typename V> 
 class AVNode final : public _AVNode<K,V>
 {
-
+public:
+    AVNode(K key, V val, _AVNode<K,V>* parent) : _AVNode<K,V>(key, val, parent) {}
 };
 
 
@@ -161,26 +163,29 @@ private:
         int left_diff = get_height_diff(rebalance_node->left);
         int right_diff = get_height_diff(rebalance_node->right);
 
-        if (curr_diff == 2 && right_diff == 1)
-        {
-            r_r(rebalance_node);
-        }
+        int left_height = rebalance_node->left != nullptr ? rebalance_node->left->height : 0;
+        int right_height = rebalance_node->right != nullptr ? rebalance_node->right->height : 0;
 
-        if (curr_diff < -1 && left_diff < 0)
+        if (curr_diff == 2)
         {
-            l_l(rebalance_node);
-        }
+            assert(right_diff == 1 || right_diff == -1);
 
-        if (curr_diff > 1 && left_diff < 0)
+            if (right_diff == 1) {
+                r_r(rebalance_node);
+            } else {
+                l_l(rebalance_node->right);
+                r_r(rebalance_node);
+            }
+        } else if (curr_diff == -2)
         {
-            l_r(rebalance_node);
+            assert(left_diff == 1 || left_diff == -1);
+            if (left_diff == 1) {
+                r_r(rebalance_node->left);
+                l_l(rebalance_node);
+            } else {
+                l_l(rebalance_node);
+            }
         }
-
-        if (curr_diff < -1 && right_diff > 0)
-        {
-            r_l(rebalance_node);
-        }
-
 
     }
 
