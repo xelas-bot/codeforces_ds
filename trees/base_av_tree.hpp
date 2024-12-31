@@ -38,7 +38,14 @@ public:
         this->parent = parent;
     }
 
-    std::string toString()
+    virtual void adjust_properties()
+    {
+        auto l_h = this->left != nullptr ? this->left->height : 0;
+        auto r_h = this->right != nullptr ? this->right->height : 0;
+        this->height = max(l_h, r_h) + 1;
+    }
+
+    virtual std::string toString() const
     {
         return format("[{},{}]", key, height); 
     }
@@ -74,16 +81,21 @@ public:
 
     // can make this slightly faster by inserting a pointer to a node directly
     // this prevents us from copying 2 address each time we recurse down the tree
-    virtual void insert(K key, V& val)
+    N<K,V>* insert(K key, V& val)
     {
         if (this->root == nullptr)
         {
             this->root = new N<K,V>(key,val,nullptr);
-            return;
+            this->size++;
+            return this->root;
         }
-
-        _insert(this->root, key, val);
+        auto* toAdjust = _insert(this->root, key, val);
         this->size++;
+        _variant_adjustments(toAdjust);
+        // TODO unneccesary logn lookup in rebalance (logn to find rebalance node)
+        rebalance(this->root);
+
+        return toAdjust;
     }
 
     // Returns 
@@ -114,13 +126,14 @@ public:
         auto* toAdjust = _delete(node);
         this->size--;
         _variant_adjustments(toAdjust);
+        rebalance(this->root);
     }
 
-    N<K,V>* find_rebalance_node(N<K,V>* node)
+protected:
+
+    N<K,V>* _find_rebalance_node(N<K,V>* node)
     {
         int diff = get_height_diff(node);
-
-        std::cout << format("[{},{}]", node->key, diff) << std::endl;
 
         if (abs(diff) <= 1)
         {
@@ -132,18 +145,16 @@ public:
 
         if (abs(right_diff) > 1)
         {
-            return find_rebalance_node(node->right);
+            return _find_rebalance_node(node->right);
         }
 
         if (abs(left_diff) > 1)
         {
-            return find_rebalance_node(node->left);
+            return _find_rebalance_node(node->left);
         }
 
         return node;
     }
-
-private:
 
     inline int get_height_diff(N<K,V>* node)
     {
@@ -163,7 +174,7 @@ private:
 
     void rebalance(N<K,V>* node)
     {
-        auto* rebalance_node = find_rebalance_node(node);
+        auto* rebalance_node = _find_rebalance_node(node);
         if (rebalance_node == nullptr)
         {
             return;
@@ -173,17 +184,18 @@ private:
         int left_diff = get_height_diff(rebalance_node->left);
         int right_diff = get_height_diff(rebalance_node->right);
 
-        int left_height = rebalance_node->left != nullptr ? rebalance_node->left->height : 0;
-        int right_height = rebalance_node->right != nullptr ? rebalance_node->right->height : 0;
-
+        std::cout << format("Rebalancing {}", rebalance_node->toString()) << std::endl;
+        std::cout << format("Curr diff: {}", curr_diff) << std::endl;
+        std::cout << format("Left diff: {}", left_diff) << std::endl;
+        std::cout << format("Right diff: {}", right_diff) << std::endl;
         if (curr_diff == 2)
         {
-            assert(right_diff == 1 || right_diff == -1);
-
             if (right_diff == 1) {
                 r_r(rebalance_node);
-            } else {
+            } else if (right_diff == -1) {
                 l_l(rebalance_node->right);
+                r_r(rebalance_node);
+            } else {
                 r_r(rebalance_node);
             }
         } else if (curr_diff == -2)
@@ -191,6 +203,8 @@ private:
             assert(left_diff == 1 || left_diff == -1);
             if (left_diff == 1) {
                 r_r(rebalance_node->left);
+                l_l(rebalance_node);
+            } else if (left_diff == -1) {
                 l_l(rebalance_node);
             } else {
                 l_l(rebalance_node);
@@ -204,19 +218,29 @@ private:
         auto* right = node->right;
         auto* parent = node->parent;
 
-        if (parent->right == node)
-        {
-            parent->right = right;
+        if (parent != nullptr) {
+            if (parent->right == node)
+            {
+                parent->right = right;
+            } else {
+                parent->left = right;
+            }
         } else {
-            parent->left = right;
+            this->root = right;
         }
 
         auto* right_left = right->left;
         node->right = right_left;
-        right_left->parent = node;
+
+        if (right_left != nullptr) {
+            right_left->parent = node;
+        }
 
         node->parent = right;
         right->left = node;
+        right->parent = parent;
+
+        _variant_adjustments(node);
     }
 
     void l_l(N<K,V>* node)
@@ -224,19 +248,27 @@ private:
         auto* left = node->left;
         auto* parent = node->parent;
 
-        if (parent->right == node)
-        {
-            parent->right = left;
+        if (parent != nullptr) {
+            if (parent->right == node)
+            {
+                parent->right = left;
+            } else {
+                parent->left = left;
+            }
         } else {
-            parent->left = left;
+            this->root = left;
         }
 
         auto* left_right = left->right;
         node->left = left_right;
-        left_right->parent = node;
+        if (left_right != nullptr) {
+            left_right->parent = node;
+        }
 
         node->parent = left;
         left->right = node;
+        left->parent = parent;
+        _variant_adjustments(node);
     }
 
     N<K,V>* arg_max(N<K,V>* node)
@@ -257,11 +289,7 @@ private:
         {
             return;
         }
-
-        auto l_h = node->left != nullptr ? node->left->height : 0;
-        auto r_h = node->right != nullptr ? node->right->height : 0;
-        node->height = max(l_h, r_h) + 1;
-
+        node->adjust_properties();
         if (node->parent != nullptr)
         {
             _variant_adjustments(node->parent);
@@ -341,10 +369,11 @@ private:
     }
 
 
-    void _insert(N<K,V>* root, K key, V& val)
+    N<K,V>* _insert(N<K,V>* root, K key, V& val)
     {
         N<K,V>* left = root->left;
         N<K,V>* right = root->right;
+        N<K,V>* toReturn = nullptr;
 
         if (key < root->key)
         {
@@ -352,14 +381,12 @@ private:
             {
                 root->left = new N<K,V>(key,val,nullptr);
                 root->left->parent = root;
+                toReturn = root->left;
             } else{
-                _insert(root->left,key,val);
+                toReturn = _insert(root->left,key,val);
             }
-
-
-            size_t l_h = root->left->height;
-            size_t r_h = root->right != nullptr ? root->right->height : 0;
-            root->height = max(r_h, l_h) + 1;
+            
+            return toReturn;
 
         } else if (key > root->key)
         {
@@ -367,30 +394,17 @@ private:
             {
                 root->right = new N<K,V>(key,val,nullptr);
                 root->right->parent = root;
+                toReturn = root->right;
             } else {
-                _insert(root->right,key,val);
+                toReturn = _insert(root->right,key,val);
             }
-
-            size_t r_h = root->right->height;
-            size_t l_h = root->left != nullptr ? root->left->height : 0;
-            root->height = max(r_h, l_h) + 1;
-
+            return toReturn;
         }else {
             root->val = val;
+            return root;
         }
     }
 
 };
 
 }
-
-
-
-
-
-
-
-
-
-
-

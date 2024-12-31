@@ -57,16 +57,16 @@ T maxPair(std::pair<T,T> p)
 }
 
 template <std::totally_ordered K, typename V, template<typename, typename> class N>
-void inOrderTraversal(BaseAVLNode<K,V,N<K,V>>* root) 
+void inOrderTraversal(BaseAVLNode<K,V,N<K,V>>* root, std::vector<K>& toReturn) 
 {
     if (root == nullptr)
     {
         return;
     }
 
-    inOrderTraversal(root->left);
-    std::cout << root->toString() << std::endl;
-    inOrderTraversal(root->right);
+    inOrderTraversal(root->left, toReturn);
+    toReturn.push_back(root->key);
+    inOrderTraversal(root->right, toReturn);
 }
 
 namespace {

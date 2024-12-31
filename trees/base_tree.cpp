@@ -30,7 +30,5 @@ int main() {
 
     utils::printTree(tree.root);
 
-    utils::inOrderTraversal(tree.root);
-
     return 0;
 }

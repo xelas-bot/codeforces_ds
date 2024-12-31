@@ -11,7 +11,7 @@ CXXFLAGS+=  $(addprefix -I, $(INC_DIR))
 LDFLAGS = ../lib/libCatch2Main.a ../lib/libCatch2.a
 
 TARGETS = base_tree.cpp
-MY_INCS = base_av_tree.hpp utils.hpp
+MY_INCS = base_av_tree.hpp prefix_sum_tree.hpp utils.hpp
 
 TARGETS_TEST = tests/test.cpp
 
