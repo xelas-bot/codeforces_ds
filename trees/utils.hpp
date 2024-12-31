@@ -34,7 +34,7 @@ pair<size_t,size_t> wideness(BaseAVLNode<K,V,N<K,V>>* root)
         auto ovr_wideness = wideness(root->left);
         inside_left_wideness = ovr_wideness.second;
         left_wideness = ovr_wideness.first;
-        ret_left_wideness = max((size_t)2, 2 * inside_left_wideness);
+        ret_left_wideness = max((size_t)root->toString().length() / 2, 2 * inside_left_wideness);
     }
 
     if (root->right != nullptr)
@@ -42,7 +42,7 @@ pair<size_t,size_t> wideness(BaseAVLNode<K,V,N<K,V>>* root)
         auto ovr_wideness = wideness(root->right);
         inside_right_wideness = ovr_wideness.first;
         right_wideness = ovr_wideness.second;
-        ret_right_wideness = max((size_t)2, 2 * inside_right_wideness);
+        ret_right_wideness = max((size_t)root->toString().length() / 2, 2 * inside_right_wideness);
     }
 
 

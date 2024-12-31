@@ -184,10 +184,6 @@ protected:
         int left_diff = get_height_diff(rebalance_node->left);
         int right_diff = get_height_diff(rebalance_node->right);
 
-        std::cout << format("Rebalancing {}", rebalance_node->toString()) << std::endl;
-        std::cout << format("Curr diff: {}", curr_diff) << std::endl;
-        std::cout << format("Left diff: {}", left_diff) << std::endl;
-        std::cout << format("Right diff: {}", right_diff) << std::endl;
         if (curr_diff == 2)
         {
             if (right_diff == 1) {
@@ -200,7 +196,6 @@ protected:
             }
         } else if (curr_diff == -2)
         {
-            assert(left_diff == 1 || left_diff == -1);
             if (left_diff == 1) {
                 r_r(rebalance_node->left);
                 l_l(rebalance_node);
