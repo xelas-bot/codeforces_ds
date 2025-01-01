@@ -5,15 +5,25 @@
 #include <vector>
 #include "base_av_tree.hpp"
 #include "prefix_sum_tree.hpp"
+#include <nanobench.h>
 #include "utils.hpp"
+#include <atomic>
 
 
 using BaseAvTree = trees::AVTree<int, int, trees::AVNode>;
 using PfxSumTree = trees::PrefixSumTree<int, int>;
 using std::vector;
-    
-uint32_t factorial( uint32_t number ) {
-    return number <= 1 ? number : factorial(number-1) * number;
+
+
+ankerl::nanobench::Bench get_bench()
+{
+    auto bench = ankerl::nanobench::Bench()
+    .timeUnit(std::chrono::milliseconds(1), "ms")
+    .minEpochIterations(15)
+    .warmup(2)
+    .performanceCounters(false);
+
+    return bench;
 }
 
 TEST_CASE( "AVTree insertion/deletion", "[correctness]" ) {
@@ -117,4 +127,80 @@ TEST_CASE( "PrefixSumTree insertion/deletion", "[correctness]" ) {
         REQUIRE(node->key == key);
         tree.delete_node(key);
     }
+}
+
+TEST_CASE( "avtree_benchmark", "[benchmark]" ) {
+    BaseAvTree tree;
+    int one = 1;
+    vector<int> keys;
+    size_t N = 10000;
+    keys.reserve(N);
+
+    for (size_t i = 0; i < N; i++) {
+        keys.push_back(i - (N/2));
+    }
+
+    auto rng = std::default_random_engine{};
+    std::shuffle(keys.begin(), keys.end(), rng);
+
+    for (int key : keys) {
+        auto node = tree.insert(key, one);
+        REQUIRE(node->key == key);
+    }
+
+    auto bench = get_bench();
+
+    REQUIRE(tree.size == N);
+
+    bench.run("baseline", [&] {
+        for (size_t i = 0; i < N; i++) {
+            int num = i - (N/2);
+            auto val = std::find(keys.begin(), keys.end(), num);
+            assert(val != keys.end());
+        }
+    });
+
+    bench.run("avtree", [&] {
+        for (size_t i = 0; i < N; i++) {
+            int num = i - (N/2);
+            auto found = tree.find(num, tree.root);
+            assert(num == found->key);
+        }
+    });
+
+    auto res = bench.results();
+
+    auto baseline_res = res[0].median(ankerl::nanobench::Result::Measure::elapsed);
+    auto avtree_res = res[1].median(ankerl::nanobench::Result::Measure::elapsed);
+
+    REQUIRE(baseline_res > 150 * avtree_res);
+}
+
+
+TEST_CASE( "avtree_complexity", "[benchmark]" ) {
+
+    auto bench = get_bench();
+    BaseAvTree tree;
+    ankerl::nanobench::Rng rng;
+    int one = 1;
+
+    // Running the benchmark multiple times, with different number of elements
+    for (auto setSize :
+         {1000U, 1500U, 2000U, 2500U, 3500U, 5000U, 10000U, 15000U, 20000U, 25000U}) {
+        
+            while (tree.size < setSize - 10) {
+                tree.insert(rng(), one);
+            }
+            // Run the benchmark, provide setSize as the scaling variable.
+            bench.complexityN(tree.size).run("avtree_insert", [&] {
+                while (tree.size < setSize) {
+                    tree.insert(rng(), one);
+                }
+            });
+    }
+
+
+    std::cout << bench.complexityBigO() << std::endl;
+    REQUIRE(bench.complexityBigO()[0].name() == "O(log(n))");
+
 }

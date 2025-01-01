@@ -1,5 +1,5 @@
 CXX = g++-11
-INC_DIR = ../include/catch2 ../include/fmt
+INC_DIR = ../include/catch2 ../include/fmt ../include/nanobench
 
 CXXFLAGS=-std=c++20 -Wall -Wextra -pedantic -g
 CXXFLAGS+=  $(addprefix -I, $(INC_DIR))
@@ -9,10 +9,10 @@ CXXFLAGS+=  $(addprefix -I, $(INC_DIR))
 # bear -- make trees test
 # perhapsibily write a script that encapsualtes the bear call and the make call
 LDFLAGS = ../lib/libCatch2Main.a ../lib/libCatch2.a
+OBJECTS = ../lib/nanobench.o
 
 TARGETS = base_tree.cpp
 MY_INCS = base_av_tree.hpp prefix_sum_tree.hpp utils.hpp
-
 TARGETS_TEST = tests/test.cpp
 
 
@@ -22,7 +22,7 @@ trees:
 
 # ldflags have to be linked after the source files
 test:
-	$(CXX) $(CXXFLAGS) -I./ tests/test.cpp $(LDFLAGS) -o target/test
+	$(CXX) $(CXXFLAGS) $(OBJECTS) -I./ tests/test.cpp $(LDFLAGS) -o target/test
 
 trees_test:
 	make trees
