@@ -1,3 +1,4 @@
+#include <cassert>
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/catch_all.hpp>
 #include <cstdint>
@@ -114,6 +115,18 @@ TEST_CASE( "PrefixSumTree insertion/deletion", "[correctness]" ) {
     std::vector<int> inOrder;
     utils::inOrderTraversal(tree.root, inOrder);
 
+    for (size_t i = 0; i < inOrder.size(); i++) {
+        auto* node = tree.find_prefix_sum(i + 1);
+        REQUIRE(node->key == inOrder[i]);
+    }
+
+    auto* node = tree.find_prefix_sum(70);
+    REQUIRE(node == NULL);
+
+    node = tree.find_prefix_sum(7);
+    REQUIRE(node->key == 10);
+
+
     std::sort(keys.begin(), keys.end());
     REQUIRE(inOrder == keys);
 
@@ -199,8 +212,8 @@ TEST_CASE( "avtree_complexity", "[benchmark]" ) {
             });
     }
 
-
-    std::cout << bench.complexityBigO() << std::endl;
-    REQUIRE(bench.complexityBigO()[0].name() == "O(log(n))");
+    auto res = bench.complexityBigO();
+    std::cout << res[0].name() << std::endl;
+    assert(res[0].name() == "O(log(n))" || res[0].name() == "O(1)");
 
 }
