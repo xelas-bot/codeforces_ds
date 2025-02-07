@@ -11,16 +11,13 @@
             "-I../include/catch2",
             "-I../include/fmt",
             "-I../include/nanobench",
-            "../lib/nanobench.o",
             "-I./",
-            "../lib/libCatch2Main.a",
-            "../lib/libCatch2.a",
             "-o",
-            "target/test",
-            "tests/test.cpp"
+            "target/rbtree",
+            "base_tree.cpp"
         ],
         "directory": "/home/shreysp3/codeforces_ds/trees",
-        "file": "tests/test.cpp"
+        "file": "base_tree.cpp"
     },
     {
         "arguments": [
@@ -34,12 +31,15 @@
             "-I../include/catch2",
             "-I../include/fmt",
             "-I../include/nanobench",
+            "../lib/nanobench.o",
             "-I./",
+            "../lib/libCatch2Main.a",
+            "../lib/libCatch2.a",
             "-o",
-            "target/rbtree",
-            "base_tree.cpp"
+            "target/test",
+            "tests/test.cpp"
         ],
         "directory": "/home/shreysp3/codeforces_ds/trees",
-        "file": "base_tree.cpp"
+        "file": "tests/test.cpp"
     }
 ]

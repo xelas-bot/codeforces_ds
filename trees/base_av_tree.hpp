@@ -1,4 +1,5 @@
 #pragma once
+#include <algorithm>
 #include <cassert>
 #define FMT_HEADER_ONLY 
 #include <iostream>

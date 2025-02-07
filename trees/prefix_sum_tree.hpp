@@ -1,4 +1,5 @@
-#include <base_av_tree.hpp>
+#pragma once
+#include "./base_av_tree.hpp"
 
 
 namespace trees {
@@ -36,7 +37,7 @@ public:
     PrefixSumTree() : AVTree<K,V,PrefixNode>() {}
 
 
-    // Finds the first key that has at least sum units in front of it
+    // Finds the first key that has at least sum units before it (inclusive of its own sum)
     const PrefixNode<K,V>* find_prefix_sum(int sum) const {
         return find_prefix_sum_helper(this->root, sum);
     }
